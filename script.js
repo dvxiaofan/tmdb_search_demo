@@ -5,24 +5,137 @@ const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const clearBtn = document.getElementById('clearBtn');
 const resultsDiv = document.getElementById('results');
+const resultsWrapper = document.getElementById('resultsWrapper');
 const loadingDiv = document.getElementById('loading');
 const errorDiv = document.getElementById('error');
+const searchHistory = document.getElementById('searchHistory');
+const historyList = document.getElementById('historyList');
+const clearHistoryBtn = document.getElementById('clearHistory');
+
+// 搜索历史管理
+const HISTORY_KEY = 'tmdb_search_history';
+const MAX_HISTORY = 10;
+
+function loadHistory() {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    return history;
+}
+
+function saveHistory(query) {
+    let history = loadHistory();
+    // 移除重复项
+    history = history.filter(item => item.toLowerCase() !== query.toLowerCase());
+    // 添加到开头
+    history.unshift(query);
+    // 限制数量
+    if (history.length > MAX_HISTORY) {
+        history = history.slice(0, MAX_HISTORY);
+    }
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    displayHistory();
+}
+
+function displayHistory() {
+    const history = loadHistory();
+    if (history.length === 0) {
+        searchHistory.classList.add('hidden');
+        searchHistory.style.display = 'none';
+        return;
+    }
+    
+    // 确保历史记录面板显示
+    searchHistory.style.display = 'block';
+    searchHistory.classList.remove('hidden');
+    
+    historyList.innerHTML = history.map(item => `
+        <button class="history-item" data-query="${item}">
+            <span>${item}</span>
+            <span class="history-remove" data-query="${item}">×</span>
+        </button>
+    `).join('');
+    
+    // 添加点击事件
+    historyList.querySelectorAll('.history-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('history-remove')) {
+                searchInput.value = btn.dataset.query;
+                performSearch();
+            }
+        });
+    });
+    
+    // 添加删除单个历史事件
+    historyList.querySelectorAll('.history-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeHistoryItem(btn.dataset.query);
+        });
+    });
+}
+
+function removeHistoryItem(query) {
+    let history = loadHistory();
+    history = history.filter(item => item !== query);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    displayHistory();
+}
+
+// 清空历史
+clearHistoryBtn.addEventListener('click', () => {
+    localStorage.removeItem(HISTORY_KEY);
+    searchHistory.classList.add('hidden');
+});
+
+// 输入框聚焦时显示历史
+searchInput.addEventListener('focus', () => {
+    setTimeout(() => {
+        if (!searchInput.value.trim() && !document.body.classList.contains('has-results')) {
+            displayHistory();
+        }
+    }, 50);
+});
+
+// 点击外部隐藏历史
+document.addEventListener('mousedown', (e) => {
+    // 使用 mousedown 而不是 click，避免与 focus 事件冲突
+    if (!searchHistory.contains(e.target) && 
+        !searchInput.contains(e.target) && 
+        e.target !== searchInput) {
+        setTimeout(() => {
+            searchHistory.classList.add('hidden');
+        }, 100);
+    }
+});
 
 // 清除按钮功能
 searchInput.addEventListener('input', () => {
     if (searchInput.value.trim()) {
+        clearBtn.style.display = 'flex';
         clearBtn.classList.add('show');
+        searchHistory.classList.add('hidden');
     } else {
+        clearBtn.style.display = 'none';
         clearBtn.classList.remove('show');
+        if (!document.body.classList.contains('has-results')) {
+            displayHistory();
+        }
     }
 });
 
 clearBtn.addEventListener('click', () => {
     searchInput.value = '';
+    clearBtn.style.display = 'none';
     clearBtn.classList.remove('show');
     searchInput.focus();
     clearResults();
     hideError();
+    // 移除结果状态
+    document.body.classList.remove('has-results');
+    resultsWrapper.classList.add('hidden');
+    // 显示历史记录
+    setTimeout(() => {
+        displayHistory();
+    }, 100);
 });
 
 searchBtn.addEventListener('click', performSearch);
@@ -38,6 +151,11 @@ async function performSearch() {
         showError('请输入搜索内容');
         return;
     }
+    
+    // 保存到历史记录
+    saveHistory(query);
+    // 隐藏历史记录面板
+    searchHistory.classList.add('hidden');
     
     const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
     
@@ -76,6 +194,14 @@ async function performSearch() {
 function displayResults(results) {
     if (!results || results.length === 0) {
         resultsDiv.innerHTML = '<p class="no-results">没有找到相关结果</p>';
+        // 先显示容器
+        resultsWrapper.classList.remove('hidden');
+        // 触发动画
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                document.body.classList.add('has-results');
+            });
+        });
         return;
     }
     
@@ -115,6 +241,15 @@ function displayResults(results) {
     }).join('');
     
     resultsDiv.innerHTML = resultsHTML;
+    
+    // 先显示容器，让宽度动画和位置动画同步
+    resultsWrapper.classList.remove('hidden');
+    // 稍微延迟触发动画类，确保过渡效果生效
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document.body.classList.add('has-results');
+        });
+    });
     
     // 添加复制按钮事件监听器
     resultsDiv.querySelectorAll('.copy-btn').forEach(btn => {
@@ -188,10 +323,18 @@ function hideError() {
 
 function clearResults() {
     resultsDiv.innerHTML = '';
+    resultsWrapper.classList.add('hidden');
+    document.body.classList.remove('has-results');
 }
 
 // 页面加载时检查输入框
 window.addEventListener('load', () => {
+    // 确保清除按钮正确初始化
+    const clearBtn = document.getElementById('clearBtn');
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
     if (API_KEY === 'YOUR_API_KEY_HERE') {
         showError('请先在script.js文件中设置您的TMDB API密钥');
         resultsDiv.innerHTML = `
@@ -208,9 +351,13 @@ window.addEventListener('load', () => {
     }
     
     // 检查输入框是否有初始值
-    if (searchInput.value.trim()) {
+    if (searchInput && searchInput.value.trim()) {
         clearBtn.classList.add('show');
+        clearBtn.style.display = 'flex';
     }
+    
+    // 初始加载历史记录
+    displayHistory();
 });
 
 // 返回顶部按钮功能
