@@ -3,9 +3,27 @@ const BASE_URL = 'https://api.themoviedb.org/3';
 
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
+const clearBtn = document.getElementById('clearBtn');
 const resultsDiv = document.getElementById('results');
 const loadingDiv = document.getElementById('loading');
 const errorDiv = document.getElementById('error');
+
+// 清除按钮功能
+searchInput.addEventListener('input', () => {
+    if (searchInput.value.trim()) {
+        clearBtn.classList.add('show');
+    } else {
+        clearBtn.classList.remove('show');
+    }
+});
+
+clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.classList.remove('show');
+    searchInput.focus();
+    clearResults();
+    hideError();
+});
 
 searchBtn.addEventListener('click', performSearch);
 searchInput.addEventListener('keypress', (e) => {
@@ -172,6 +190,7 @@ function clearResults() {
     resultsDiv.innerHTML = '';
 }
 
+// 页面加载时检查输入框
 window.addEventListener('load', () => {
     if (API_KEY === 'YOUR_API_KEY_HERE') {
         showError('请先在script.js文件中设置您的TMDB API密钥');
@@ -187,4 +206,29 @@ window.addEventListener('load', () => {
             </div>
         `;
     }
+    
+    // 检查输入框是否有初始值
+    if (searchInput.value.trim()) {
+        clearBtn.classList.add('show');
+    }
+});
+
+// 返回顶部按钮功能
+const backToTopBtn = document.getElementById('backToTop');
+
+// 监听滚动事件
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+        backToTopBtn.classList.add('show');
+    } else {
+        backToTopBtn.classList.remove('show');
+    }
+});
+
+// 点击返回顶部
+backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
 });

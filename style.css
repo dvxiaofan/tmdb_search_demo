@@ -41,9 +41,15 @@ h1 {
     margin-bottom: 15px;
 }
 
+.input-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+}
+
 #searchInput {
     flex: 1;
-    padding: 15px 20px;
+    padding: 15px 45px 15px 20px;
     font-size: 16px;
     border: 2px solid #e0e0e0;
     border-radius: 10px;
@@ -53,6 +59,34 @@ h1 {
 #searchInput:focus {
     outline: none;
     border-color: #667eea;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: none;
+    color: #999;
+    font-size: 24px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.clear-btn:hover {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.clear-btn.show {
+    display: flex;
 }
 
 #searchBtn {
@@ -287,6 +321,10 @@ h1 {
         flex-direction: column;
     }
     
+    .input-wrapper {
+        width: 100%;
+    }
+    
     #searchBtn {
         width: 100%;
     }
@@ -298,5 +336,47 @@ h1 {
     .poster {
         width: 100%;
         height: 200px;
+    }
+}
+
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-to-top:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (max-width: 768px) {
+    .back-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
     }
 }

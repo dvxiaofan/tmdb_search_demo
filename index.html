@@ -11,7 +11,10 @@
         <h1>TMDB ID 查询工具</h1>
         <div class="search-section">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="输入电影或电视剧名称..." autofocus>
+                <div class="input-wrapper">
+                    <input type="text" id="searchInput" placeholder="输入电影或电视剧名称..." autofocus>
+                    <button id="clearBtn" class="clear-btn" title="清除">×</button>
+                </div>
                 <button id="searchBtn">搜索</button>
             </div>
             <div class="search-type">
@@ -35,6 +38,8 @@
         
         <div id="results" class="results"></div>
     </div>
+    
+    <button id="backToTop" class="back-to-top" title="返回顶部">↑</button>
     
     <script src="script.js"></script>
 </body>
