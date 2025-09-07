@@ -12,12 +12,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: align-items 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
 }
 
 body.has-results {
     align-items: flex-start;
     padding-top: 40px;
+}
+
+/* 暗黑模式样式 */
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 }
 
 .container {
@@ -37,10 +42,57 @@ body.has-results {
     margin: 0 auto;
 }
 
+/* 暗黑模式下的搜索卡片 */
+body.dark-mode .search-card {
+    background: rgba(30, 30, 50, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 body.has-results .search-card {
     max-width: 100%;
     margin-bottom: 30px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* 暗黑模式下的结果状态搜索卡片 */
+body.dark-mode.has-results .search-card {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* 暗黑模式下的切换按钮 */
+body.dark-mode .dark-mode-toggle {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .dark-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 h1 {
@@ -49,6 +101,15 @@ h1 {
     margin-bottom: 30px;
     font-size: 2.5em;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 暗黑模式下的标题 */
+body.dark-mode h1 {
+    color: #e0e0e0;
+    background: linear-gradient(135deg, #8b9ce8 0%, #a384d8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -84,9 +145,26 @@ body.has-results .search-section {
     transition: border-color 0.3s;
 }
 
+/* 暗黑模式下的输入框 */
+body.dark-mode #searchInput {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+body.dark-mode #searchInput::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
 #searchInput:focus {
     outline: none;
     border-color: #667eea;
+}
+
+/* 暗黑模式下的输入框焦点 */
+body.dark-mode #searchInput:focus {
+    border-color: #8b9ce8;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .clear-btn {
@@ -114,6 +192,17 @@ body.has-results .search-section {
     color: #666;
 }
 
+/* 暗黑模式下的清除按钮 */
+body.dark-mode .clear-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+}
+
+body.dark-mode .clear-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
 .clear-btn.show {
     display: flex !important;
 }
@@ -133,6 +222,15 @@ body.has-results .search-section {
 #searchBtn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* 暗黑模式下的搜索按钮 */
+body.dark-mode #searchBtn {
+    background: linear-gradient(135deg, #8b9ce8 0%, #a384d8 100%);
+}
+
+body.dark-mode #searchBtn:hover {
+    box-shadow: 0 5px 15px rgba(139, 156, 232, 0.4);
 }
 
 #searchBtn:active {
@@ -289,6 +387,14 @@ body.has-results .search-section {
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 暗黑模式下的结果包装器 */
+body.dark-mode .results-wrapper {
+    background: rgba(30, 30, 50, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
 body.has-results .results-wrapper {
     max-width: 100%;
     opacity: 1;
@@ -308,9 +414,21 @@ body.has-results .results-wrapper {
     transition: box-shadow 0.3s, transform 0.3s;
 }
 
+/* 暗黑模式下的结果项 */
+body.dark-mode .result-item {
+    background: rgba(40, 40, 60, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+}
+
 .result-item:hover {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
+}
+
+/* 暗黑模式下的结果项悬停 */
+body.dark-mode .result-item:hover {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .poster {
@@ -319,6 +437,39 @@ body.has-results .results-wrapper {
     object-fit: cover;
     border-radius: 8px;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.poster:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.poster-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.download-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.poster-wrapper:hover .download-hint {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
 }
 
 .result-info {
@@ -331,6 +482,38 @@ body.has-results .results-wrapper {
 .result-info h3 {
     color: #333;
     font-size: 1.4em;
+}
+
+/* 暗黑模式下的结果标题 */
+body.dark-mode .result-info h3 {
+    color: #e0e0e0;
+}
+
+/* 暗黑模式下的概述文本 */
+body.dark-mode .overview {
+    color: #b0b0b0;
+}
+
+/* 暗黑模式下的类型和ID标签 */
+body.dark-mode .type,
+body.dark-mode .tmdb-id {
+    color: #c0c0c0;
+}
+
+/* 暗黑模式下的强调文本 */
+body.dark-mode .tmdb-id strong {
+    color: #e0e0e0;
+}
+
+/* 暗黑模式下的类型标签 */
+body.dark-mode .type-movie {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffd93d;
+}
+
+body.dark-mode .type-tv {
+    background: rgba(116, 185, 255, 0.2);
+    color: #74b9ff;
 }
 
 .meta {
@@ -420,6 +603,15 @@ body.has-results .results-wrapper {
     box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
 }
 
+/* 暗黑模式下的TMDB链接 */
+body.dark-mode .tmdb-link {
+    background: linear-gradient(135deg, #8b9ce8 0%, #a384d8 100%);
+}
+
+body.dark-mode .tmdb-link:hover {
+    box-shadow: 0 3px 10px rgba(139, 156, 232, 0.3);
+}
+
 .no-results {
     text-align: center;
     color: #999;
@@ -451,6 +643,104 @@ body.has-results .results-wrapper {
 
 .api-setup a:hover {
     text-decoration: underline;
+}
+
+/* 下载提示样式 */
+.download-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+/* 暗黑模式下的搜索历史 */
+body.dark-mode .search-history {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 暗黑模式下的历史标题 */
+body.dark-mode .history-header {
+    color: #c0c0c0;
+}
+
+body.dark-mode .history-item {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .history-item:hover {
+    background: linear-gradient(135deg, #8b9ce8 0%, #a384d8 100%);
+    color: white;
+    border-color: transparent;
+}
+
+/* 暗黑模式下的历史删除按钮 */
+body.dark-mode .history-remove {
+    background: rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+body.dark-mode .history-item:hover .history-remove {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+/* 暗黑模式下的按钮 */
+body.dark-mode .copy-btn,
+body.dark-mode .clear-history {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .copy-btn:hover,
+body.dark-mode .clear-history:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 暗黑模式下的搜索类型 */
+body.dark-mode .search-type label {
+    color: #e0e0e0;
+}
+
+body.dark-mode input[type="radio"]:checked + span {
+    color: #8b9ce8;
+}
+
+/* 暗黑模式下的加载和错误提示 */
+body.dark-mode .loading,
+body.dark-mode .error {
+    color: #e0e0e0;
+}
+
+/* 暗黑模式下的无结果提示 */
+body.dark-mode .no-results {
+    color: #b0b0b0;
+}
+
+/* 暗黑模式下的返回顶部按钮 */
+body.dark-mode .back-to-top {
+    background: rgba(139, 156, 232, 0.8);
+}
+
+body.dark-mode .back-to-top:hover {
+    background: rgba(139, 156, 232, 1);
+}
+
+/* 暗黑模式下的下载提示 */
+body.dark-mode .download-toast {
+    background: linear-gradient(135deg, #8b9ce8, #a384d8);
 }
 
 @media (max-width: 768px) {

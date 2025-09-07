@@ -11,10 +11,35 @@ const errorDiv = document.getElementById('error');
 const searchHistory = document.getElementById('searchHistory');
 const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistory');
+const darkModeToggle = document.getElementById('darkModeToggle');
 
 // 搜索历史管理
 const HISTORY_KEY = 'tmdb_search_history';
 const MAX_HISTORY = 10;
+
+// 暗黑模式管理
+const DARK_MODE_KEY = 'tmdb_dark_mode';
+
+// 暗黑模式功能
+function initDarkMode() {
+    const isDarkMode = localStorage.getItem(DARK_MODE_KEY) === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        updateDarkModeToggle(true);
+    }
+}
+
+function toggleDarkMode() {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    localStorage.setItem(DARK_MODE_KEY, isDarkMode);
+    updateDarkModeToggle(isDarkMode);
+}
+
+function updateDarkModeToggle(isDarkMode) {
+    const toggleIcon = darkModeToggle.querySelector('.toggle-icon');
+    toggleIcon.textContent = isDarkMode ? '☀️' : '🌙';
+    darkModeToggle.title = isDarkMode ? '切换亮色模式' : '切换暗黑模式';
+}
 
 function loadHistory() {
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
@@ -98,8 +123,12 @@ searchInput.addEventListener('focus', () => {
 // 点击外部隐藏历史
 document.addEventListener('mousedown', (e) => {
     // 使用 mousedown 而不是 click，避免与 focus 事件冲突
+    // 检查是否点击了暗黑模式按钮或其子元素
+    const isDarkModeToggleClick = darkModeToggle.contains(e.target) || e.target === darkModeToggle;
+    
     if (!searchHistory.contains(e.target) && 
         !searchInput.contains(e.target) && 
+        !isDarkModeToggleClick &&
         e.target !== searchInput) {
         setTimeout(() => {
             searchHistory.classList.add('hidden');
@@ -144,6 +173,9 @@ searchInput.addEventListener('keypress', (e) => {
         performSearch();
     }
 });
+
+// 暗黑模式切换事件监听器
+darkModeToggle.addEventListener('click', toggleDarkMode);
 
 async function performSearch() {
     const query = searchInput.value.trim();
@@ -223,7 +255,10 @@ function displayResults(results) {
         
         return `
             <div class="result-item">
-                <img src="${posterPath}" alt="${title}" class="poster">
+                <div class="poster-wrapper">
+                    <img src="${posterPath}" alt="${title}" class="poster" data-title="${title}" data-year="${year}" title="点击下载图片">
+                    <div class="download-hint">点击下载</div>
+                </div>
                 <div class="result-info">
                     <h3>${title} ${year ? `(${year})` : ''}</h3>
                     <div class="meta">
@@ -256,6 +291,13 @@ function displayResults(results) {
         btn.addEventListener('click', function() {
             const id = this.dataset.id;
             copyToClipboard(id, this);
+        });
+    });
+    
+    // 添加图片下载事件监听器
+    resultsDiv.querySelectorAll('.poster').forEach(img => {
+        img.addEventListener('click', function() {
+            downloadImage(this.src, this.dataset.title, this.dataset.year);
         });
     });
 }
@@ -308,6 +350,68 @@ function copyToClipboard(id, button) {
     document.body.removeChild(tempInput);
 }
 
+// 下载图片功能
+async function downloadImage(imageUrl, title, year) {
+    try {
+        // 如果是默认占位符图片，不允许下载
+        if (imageUrl.startsWith('data:image/svg+xml')) {
+            showError('无法下载占位符图片');
+            return;
+        }
+        
+        // 通过代理服务器获取图片，解决跨域问题
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`;
+        
+        const response = await fetch(proxyUrl);
+        if (!response.ok) {
+            throw new Error('图片下载失败');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // 创建下载链接
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // 生成文件名
+        const fileName = `${title}${year ? '_' + year : ''}_poster.jpg`;
+        a.download = fileName.replace(/[^\w\s-]/gi, ''); // 移除特殊字符
+        
+        // 触发下载
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // 清理URL对象
+        window.URL.revokeObjectURL(url);
+        
+        // 显示成功提示
+        showDownloadSuccess();
+        
+    } catch (error) {
+        console.error('下载失败:', error);
+        showError('图片下载失败，请稍后重试');
+    }
+}
+
+// 显示下载成功提示
+function showDownloadSuccess() {
+    const toast = document.createElement('div');
+    toast.className = 'download-toast';
+    toast.textContent = '图片下载中...';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 2000);
+}
+
 function showLoading(show) {
     loadingDiv.classList.toggle('hidden', !show);
 }
@@ -329,6 +433,9 @@ function clearResults() {
 
 // 页面加载时检查输入框
 window.addEventListener('load', () => {
+    // 初始化暗黑模式
+    initDarkMode();
+    
     // 确保清除按钮正确初始化
     const clearBtn = document.getElementById('clearBtn');
     if (clearBtn) {
@@ -356,8 +463,9 @@ window.addEventListener('load', () => {
         clearBtn.style.display = 'flex';
     }
     
-    // 初始加载历史记录
-    displayHistory();
+    // 确保搜索历史初始状态是隐藏的
+    searchHistory.classList.add('hidden');
+    searchHistory.style.display = 'none';
 });
 
 // 返回顶部按钮功能
