@@ -98,12 +98,73 @@ body.dark-mode .dark-mode-toggle:hover {
 h1 {
     text-align: center;
     color: #333;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     font-size: 2.5em;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+}
+
+/* 快捷键提示 */
+.shortcuts-hint {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.shortcuts-hint:hover {
+    opacity: 1;
+}
+
+.shortcuts-hint span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.shortcuts-hint kbd {
+    background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 100%);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 
+        0 1px 0 rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    color: #333;
+    min-width: 20px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* 暗黑模式下的快捷键提示 */
+body.dark-mode .shortcuts-hint {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+body.dark-mode .shortcuts-hint:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+body.dark-mode .shortcuts-hint kbd {
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(255, 255, 255, 0.08) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 
+        0 1px 0 rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    font-weight: 500;
 }
 
 /* 暗黑模式下的标题 */
@@ -351,10 +412,107 @@ body.dark-mode #searchBtn:hover {
 }
 
 .loading {
-    text-align: center;
-    color: #667eea;
-    font-size: 18px;
     padding: 20px;
+}
+
+/* 骨架屏加载动画 */
+.skeleton-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.skeleton-item {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-poster {
+    width: 100px;
+    height: 150px;
+    background: linear-gradient(90deg, 
+        rgba(103, 126, 234, 0.1) 0%, 
+        rgba(103, 126, 234, 0.2) 50%, 
+        rgba(103, 126, 234, 0.1) 100%);
+    border-radius: 8px;
+    background-size: 200% 100%;
+    animation: skeletonWave 1.5s ease-in-out infinite;
+}
+
+.skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    background: linear-gradient(90deg, 
+        rgba(103, 126, 234, 0.1) 0%, 
+        rgba(103, 126, 234, 0.2) 50%, 
+        rgba(103, 126, 234, 0.1) 100%);
+    border-radius: 4px;
+    background-size: 200% 100%;
+    animation: skeletonWave 1.5s ease-in-out infinite;
+}
+
+.skeleton-meta {
+    height: 20px;
+    width: 40%;
+    background: linear-gradient(90deg, 
+        rgba(103, 126, 234, 0.1) 0%, 
+        rgba(103, 126, 234, 0.2) 50%, 
+        rgba(103, 126, 234, 0.1) 100%);
+    border-radius: 4px;
+    background-size: 200% 100%;
+    animation: skeletonWave 1.5s ease-in-out infinite;
+}
+
+.skeleton-text {
+    height: 16px;
+    background: linear-gradient(90deg, 
+        rgba(103, 126, 234, 0.1) 0%, 
+        rgba(103, 126, 234, 0.2) 50%, 
+        rgba(103, 126, 234, 0.1) 100%);
+    border-radius: 4px;
+    background-size: 200% 100%;
+    animation: skeletonWave 1.5s ease-in-out infinite;
+}
+
+.skeleton-text:nth-child(3) { width: 100%; }
+.skeleton-text:nth-child(4) { width: 90%; }
+.skeleton-text:nth-child(5) { width: 95%; }
+
+@keyframes skeletonWave {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes skeletonPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 暗黑模式下的骨架屏 */
+body.dark-mode .skeleton-item {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .skeleton-poster,
+body.dark-mode .skeleton-title,
+body.dark-mode .skeleton-meta,
+body.dark-mode .skeleton-text {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.05) 0%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        rgba(255, 255, 255, 0.05) 100%);
+    background-size: 200% 100%;
 }
 
 .error {
@@ -364,6 +522,15 @@ body.dark-mode #searchBtn:hover {
     border-radius: 10px;
     margin-bottom: 20px;
     text-align: center;
+    border: 1px solid rgba(204, 51, 51, 0.2);
+    font-weight: 500;
+}
+
+/* 暗黑模式下的错误提示 */
+body.dark-mode .error {
+    background: rgba(220, 53, 69, 0.15);
+    color: #ff6b6b;
+    border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
 .hidden {
@@ -406,19 +573,24 @@ body.has-results .results-wrapper {
 }
 
 .result-item {
+    position: relative;
     display: flex;
     gap: 20px;
     padding: 20px;
+    background: white;
     border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    transition: box-shadow 0.3s, transform 0.3s;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.4s ease;
+    margin: 15px 0;
 }
 
 /* 暗黑模式下的结果项 */
 body.dark-mode .result-item {
-    background: rgba(40, 40, 60, 0.8);
+    background: rgba(30, 30, 50, 0.9);
     border-color: rgba(255, 255, 255, 0.1);
     color: #e0e0e0;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .result-item:hover {
@@ -558,6 +730,15 @@ body.dark-mode .type-tv {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* 展开状态下的概述文本 - 移除行数限制 */
+.result-item.expanded .overview {
+    display: block;
+    -webkit-line-clamp: none;
+    -webkit-box-orient: initial;
+    overflow: visible;
 }
 
 .actions {
@@ -610,6 +791,420 @@ body.dark-mode .tmdb-link {
 
 body.dark-mode .tmdb-link:hover {
     box-shadow: 0 3px 10px rgba(139, 156, 232, 0.3);
+}
+
+/* 展开按钮样式 - 重新设计 */
+.expand-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(103, 126, 234, 0.1);
+    color: #667eea;
+    border: 1px solid rgba(103, 126, 234, 0.2);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.expand-btn:hover {
+    background: rgba(103, 126, 234, 0.2);
+    transform: scale(1.1);
+}
+
+.expand-icon {
+    transition: transform 0.3s ease;
+    font-size: 10px;
+}
+
+/* 结果卡片需要相对定位 */
+.result-item {
+    position: relative;
+}
+
+/* 暗黑模式下的展开按钮 */
+body.dark-mode .expand-btn {
+    background: rgba(139, 156, 232, 0.1);
+    color: #8b9ce8;
+    border-color: rgba(139, 156, 232, 0.2);
+}
+
+body.dark-mode .expand-btn:hover {
+    background: rgba(139, 156, 232, 0.2);
+}
+
+/* 详情面板样式 */
+.detail-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.detail-panel.expanded {
+    max-height: 1000px;
+    opacity: 1;
+    transform: translateY(0);
+    padding: 20px 0 10px 0;
+    margin-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 暗黑模式下的详情面板 */
+body.dark-mode .detail-panel.expanded {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 主要内容区域 */
+.result-main-content {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+/* 结果卡片展开状态 */
+.result-item.expanded {
+    background: rgba(103, 126, 234, 0.05);
+    margin: 20px 0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    flex-direction: column; /* 展开时改为垂直布局 */
+}
+
+/* 展开状态下的主要内容区域保持水平布局 */
+.result-item.expanded .result-main-content {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+/* 暗黑模式下的展开卡片 */
+body.dark-mode .result-item.expanded {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* 详情包装器 */
+.detail-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 加载状态 */
+.detail-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 30px;
+    color: #666;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e0e0e0;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 暗黑模式下的加载状态 */
+body.dark-mode .detail-loading {
+    color: #aaa;
+}
+
+body.dark-mode .loading-spinner {
+    border-color: #444;
+    border-top-color: #8b9ce8;
+}
+
+/* 影片统计信息 - 更紧凑的水平布局 */
+.movie-stats {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 120px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* 暗黑模式下的统计信息 */
+body.dark-mode .movie-stats {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .stat-label {
+    color: #aaa;
+}
+
+body.dark-mode .stat-value {
+    color: #e0e0e0;
+}
+
+/* 紧凑的演员表样式 */
+.cast-list-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    line-height: 1.4;
+}
+
+.cast-item-compact {
+    font-size: 14px;
+    color: #333;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+}
+
+.cast-item-compact strong {
+    color: #667eea;
+}
+
+/* 暗黑模式下的紧凑演员表 */
+body.dark-mode .cast-item-compact {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+}
+
+body.dark-mode .cast-item-compact strong {
+    color: #8b9ce8;
+}
+
+/* 演员表样式 - 保留旧版本作为备用 */
+.cast-section,
+.similar-section {
+    margin-bottom: 20px;
+}
+
+.cast-section h4,
+.similar-section h4 {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid rgba(103, 126, 234, 0.2);
+}
+
+.cast-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.cast-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.actor-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.character-name {
+    font-size: 12px;
+    color: #666;
+    opacity: 0.8;
+}
+
+/* 暗黑模式下的演员表 */
+body.dark-mode .cast-section h4,
+body.dark-mode .similar-section h4 {
+    color: #e0e0e0;
+    border-bottom-color: rgba(139, 156, 232, 0.3);
+}
+
+body.dark-mode .cast-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .actor-name {
+    color: #e0e0e0;
+}
+
+body.dark-mode .character-name {
+    color: #aaa;
+}
+
+/* 相似推荐样式 */
+.similar-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.similar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.similar-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.similar-poster {
+    width: 60px;
+    height: 90px;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.similar-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.similar-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.similar-rating {
+    font-size: 11px;
+    color: #ffd700;
+    font-weight: 500;
+}
+
+/* 暗黑模式下的相似推荐 */
+body.dark-mode .similar-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .similar-item:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .similar-title {
+    color: #e0e0e0;
+}
+
+/* 错误消息和重试按钮 */
+.error-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+    color: #666;
+}
+
+.retry-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+    background: #5a67d8;
+}
+
+/* 暗黑模式下的错误消息 */
+body.dark-mode .error-message {
+    color: #aaa;
+}
+
+body.dark-mode .retry-btn {
+    background: #8b9ce8;
+}
+
+body.dark-mode .retry-btn:hover {
+    background: #7c8ce0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .movie-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .cast-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .similar-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .result-item.expanded {
+        margin: 15px 0;
+        padding: 15px;
+    }
 }
 
 .no-results {
@@ -823,10 +1418,6 @@ body.dark-mode input[type="radio"]:checked + span {
 
 /* 暗黑模式下的加载和错误提示 */
 body.dark-mode .loading,
-body.dark-mode .error {
-    color: #e0e0e0;
-}
-
 /* 暗黑模式下的无结果提示 */
 body.dark-mode .no-results {
     color: #b0b0b0;

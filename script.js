@@ -150,7 +150,7 @@ document.addEventListener('mousedown', (e) => {
     }
 });
 
-// 清除按钮功能
+// 清除按钮功能（移除自动搜索）
 searchInput.addEventListener('input', () => {
     const hasValue = searchInput.value.trim().length > 0;
     
@@ -275,31 +275,45 @@ function displayResults(results) {
             : `https://www.themoviedb.org/tv/${item.id}`;
         
         return `
-            <div class="result-item">
-                <div class="poster-wrapper">
-                    <img src="${posterPath}" alt="${title}" class="poster" 
-                         data-title="${title}" 
-                         data-year="${year}" 
-                         data-hd-poster="${hdPosterPath}"
-                         data-poster-path="${item.poster_path || ''}"
-                         title="点击下载高清图片">
-                    <div class="download-hint">点击下载高清</div>
-                    <div class="download-options" style="display: none;">
-                        <button class="download-size-btn" data-size="w500">中等 (500px)</button>
-                        <button class="download-size-btn" data-size="w780">大图 (780px)</button>
-                        <button class="download-size-btn" data-size="original">原图 (最高清)</button>
+            <div class="result-item" data-id="${item.id}" data-media-type="${mediaType}">
+                <div class="result-main-content">
+                    <div class="poster-wrapper">
+                        <img src="${posterPath}" alt="${title}" class="poster" 
+                             data-title="${title}" 
+                             data-year="${year}" 
+                             data-hd-poster="${hdPosterPath}"
+                             data-poster-path="${item.poster_path || ''}"
+                             title="点击下载高清图片">
+                        <div class="download-hint">点击下载高清</div>
+                        <div class="download-options" style="display: none;">
+                            <button class="download-size-btn" data-size="w500">中等 (500px)</button>
+                            <button class="download-size-btn" data-size="w780">大图 (780px)</button>
+                            <button class="download-size-btn" data-size="original">原图 (最高清)</button>
+                        </div>
+                    </div>
+                    <div class="result-info">
+                        <h3>${title} ${year ? `(${year})` : ''}</h3>
+                        <div class="meta">
+                            <span class="type ${typeClass}">${typeLabel}</span>
+                            <span class="tmdb-id">TMDB ID: <strong>${item.id}</strong></span>
+                        </div>
+                        <p class="overview">${item.overview || '暂无简介'}</p>
+                        <div class="actions">
+                            <button class="copy-btn" data-id="${item.id}">复制ID</button>
+                            <a href="${tmdbUrl}" target="_blank" class="tmdb-link">在TMDB查看</a>
+                        </div>
                     </div>
                 </div>
-                <div class="result-info">
-                    <h3>${title} ${year ? `(${year})` : ''}</h3>
-                    <div class="meta">
-                        <span class="type ${typeClass}">${typeLabel}</span>
-                        <span class="tmdb-id">TMDB ID: <strong>${item.id}</strong></span>
+                <button class="expand-btn" data-id="${item.id}" title="展开详细信息">
+                    <span class="expand-icon">▼</span>
+                </button>
+                <div class="detail-panel">
+                    <div class="detail-loading">
+                        <div class="loading-spinner"></div>
+                        <span>加载详细信息中...</span>
                     </div>
-                    <p class="overview">${item.overview || '暂无简介'}</p>
-                    <div class="actions">
-                        <button class="copy-btn" data-id="${item.id}">复制ID</button>
-                        <a href="${tmdbUrl}" target="_blank" class="tmdb-link">在TMDB查看</a>
+                    <div class="detail-content" style="display: none;">
+                        <!-- 详细内容将在这里动态填充 -->
                     </div>
                 </div>
             </div>
@@ -367,6 +381,162 @@ function displayResults(results) {
             posterWrapper.querySelector('.download-options').style.display = 'none';
         });
     });
+    
+    // 添加展开按钮事件监听器
+    resultsDiv.querySelectorAll('.expand-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const resultItem = this.closest('.result-item');
+            const detailPanel = resultItem.querySelector('.detail-panel');
+            const expandIcon = this.querySelector('.expand-icon');
+            
+            if (resultItem.classList.contains('expanded')) {
+                // 收起
+                resultItem.classList.remove('expanded');
+                detailPanel.classList.remove('expanded');
+                expandIcon.textContent = '▼';
+                this.title = '展开详细信息';
+            } else {
+                // 展开
+                resultItem.classList.add('expanded');
+                detailPanel.classList.add('expanded');
+                expandIcon.textContent = '▲';
+                this.title = '收起详细信息';
+                
+                // 如果还没有加载详细信息，开始加载
+                if (!resultItem.dataset.detailsLoaded) {
+                    loadMovieDetails(resultItem);
+                }
+            }
+        });
+    });
+}
+
+// 加载影片详细信息
+async function loadMovieDetails(resultItem) {
+    const itemId = resultItem.dataset.id;
+    const mediaType = resultItem.dataset.mediaType;
+    const detailLoading = resultItem.querySelector('.detail-loading');
+    const detailContent = resultItem.querySelector('.detail-content');
+    
+    try {
+        // 显示加载状态
+        detailLoading.style.display = 'flex';
+        detailContent.style.display = 'none';
+        
+        // 根据媒体类型确定API端点
+        const endpoint = mediaType === 'movie' ? 'movie' : 'tv';
+        
+        // 并行请求详细信息、演员信息和相似推荐
+        const [detailsRes, creditsRes, similarRes] = await Promise.all([
+            fetch(`${BASE_URL}/${endpoint}/${itemId}?api_key=${API_KEY}&language=zh-CN`),
+            fetch(`${BASE_URL}/${endpoint}/${itemId}/credits?api_key=${API_KEY}&language=zh-CN`),
+            fetch(`${BASE_URL}/${endpoint}/${itemId}/similar?api_key=${API_KEY}&language=zh-CN`)
+        ]);
+        
+        if (!detailsRes.ok || !creditsRes.ok || !similarRes.ok) {
+            throw new Error('获取详细信息失败');
+        }
+        
+        const [details, credits, similar] = await Promise.all([
+            detailsRes.json(),
+            creditsRes.json(),
+            similarRes.json()
+        ]);
+        
+        // 渲染详细信息
+        renderMovieDetails(detailContent, details, credits, similar, mediaType);
+        
+        // 标记为已加载
+        resultItem.dataset.detailsLoaded = 'true';
+        
+        // 显示内容，隐藏加载
+        detailLoading.style.display = 'none';
+        detailContent.style.display = 'block';
+        
+    } catch (error) {
+        console.error('加载详细信息失败:', error);
+        detailLoading.innerHTML = `
+            <div class="error-message">
+                <span>❌ 加载失败: ${error.message}</span>
+                <button onclick="loadMovieDetails(this.closest('.result-item'))" class="retry-btn">重试</button>
+            </div>
+        `;
+    }
+}
+
+// 渲染影片详细信息
+function renderMovieDetails(container, details, credits, similar, mediaType) {
+    // 获取基础信息
+    const runtime = details.runtime || details.episode_run_time?.[0] || 0;
+    const genres = details.genres?.map(g => g.name).join('、') || '未知';
+    const rating = details.vote_average || 0;
+    const voteCount = details.vote_count || 0;
+    
+    // 获取主要演员（前6位）
+    const mainCast = credits.cast?.slice(0, 6) || [];
+    
+    // 获取相似推荐（前4部）
+    const similarMovies = similar.results?.slice(0, 4) || [];
+    
+    const html = `
+        <div class="detail-content-wrapper">
+            <div class="movie-stats">
+                <div class="stat-item">
+                    <span class="stat-label">评分</span>
+                    <span class="stat-value">${rating.toFixed(1)}/10 (${voteCount}人评价)</span>
+                </div>
+                ${runtime > 0 ? `
+                    <div class="stat-item">
+                        <span class="stat-label">时长</span>
+                        <span class="stat-value">${runtime}分钟</span>
+                    </div>
+                ` : ''}
+                <div class="stat-item">
+                    <span class="stat-label">类型</span>
+                    <span class="stat-value">${genres}</span>
+                </div>
+            </div>
+            
+            ${mainCast.length > 0 ? `
+                <div class="cast-section">
+                    <h4>主要演员</h4>
+                    <div class="cast-list-compact">
+                        ${mainCast.map(actor => `
+                            <span class="cast-item-compact">
+                                <strong>${actor.name}</strong> 饰 ${actor.character || '未知角色'}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${similarMovies.length > 0 ? `
+                <div class="similar-section">
+                    <h4>相似推荐</h4>
+                    <div class="similar-list">
+                        ${similarMovies.map(movie => {
+                            const title = movie.title || movie.name;
+                            const poster = movie.poster_path 
+                                ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
+                                : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iOTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MCIgaGVpZ2h0PSI5MCIgZmlsbD0iI2RkZCIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj7ml6Dlm77niYc8L3RleHQ+Cjwvc3ZnPg==';
+                            return `
+                                <div class="similar-item">
+                                    <img src="${poster}" alt="${title}" class="similar-poster">
+                                    <div class="similar-info">
+                                        <span class="similar-title">${title}</span>
+                                        <span class="similar-rating">${(movie.vote_average || 0).toFixed(1)}★</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    container.innerHTML = html;
 }
 
 function copyToClipboard(id, button) {
@@ -604,7 +774,29 @@ function showDownloadAlternative(sizeLabel) {
 }
 
 function showLoading(show) {
-    loadingDiv.classList.toggle('hidden', !show);
+    if (show) {
+        // 显示骨架屏
+        loadingDiv.innerHTML = `
+            <div class="skeleton-container">
+                ${Array(3).fill('').map(() => `
+                    <div class="skeleton-item">
+                        <div class="skeleton-poster"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-meta"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        loadingDiv.classList.remove('hidden');
+    } else {
+        loadingDiv.classList.add('hidden');
+        loadingDiv.innerHTML = '';
+    }
 }
 
 function showError(message) {
@@ -657,6 +849,40 @@ window.addEventListener('load', () => {
     // 确保搜索历史初始状态是隐藏的
     searchHistory.classList.add('hidden');
     searchHistory.style.display = 'none';
+});
+
+// 键盘快捷键支持
+document.addEventListener('keydown', (e) => {
+    // 按 / 聚焦搜索框（排除已在输入框的情况）
+    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+    }
+    
+    // 按 Escape 清空搜索/关闭结果
+    if (e.key === 'Escape') {
+        if (searchInput.value.trim()) {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            clearBtn.classList.remove('show');
+            clearResults();
+            hideError();
+            document.body.classList.remove('has-results');
+            resultsWrapper.classList.add('hidden');
+            setTimeout(() => {
+                displayHistory();
+            }, 100);
+        }
+        searchInput.blur(); // 失去焦点
+    }
+    
+    // Ctrl/Cmd + K 快速搜索
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+    }
 });
 
 // 返回顶部按钮功能
