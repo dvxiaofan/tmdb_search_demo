@@ -111,8 +111,15 @@ clearHistoryBtn.addEventListener('click', () => {
     searchHistory.classList.add('hidden');
 });
 
-// 输入框聚焦时显示历史
+// 输入框聚焦时的处理 - 合并历史显示和清除按钮检查
 searchInput.addEventListener('focus', () => {
+    // 检查是否需要显示清除按钮
+    if (searchInput.value.trim().length > 0) {
+        clearBtn.style.display = 'flex';
+        clearBtn.classList.add('show');
+    }
+    
+    // 显示历史记录（如果没有输入内容且没有结果）
     setTimeout(() => {
         if (!searchInput.value.trim() && !document.body.classList.contains('has-results')) {
             displayHistory();
@@ -120,7 +127,7 @@ searchInput.addEventListener('focus', () => {
     }, 50);
 });
 
-// 点击外部隐藏历史
+// 点击外部隐藏历史和下载选项
 document.addEventListener('mousedown', (e) => {
     // 使用 mousedown 而不是 click，避免与 focus 事件冲突
     // 检查是否点击了暗黑模式按钮或其子元素
@@ -134,11 +141,20 @@ document.addEventListener('mousedown', (e) => {
             searchHistory.classList.add('hidden');
         }, 100);
     }
+    
+    // 隐藏所有下载选项（除非点击的是选项本身）
+    if (!e.target.closest('.poster-wrapper')) {
+        document.querySelectorAll('.download-options').forEach(div => {
+            div.style.display = 'none';
+        });
+    }
 });
 
 // 清除按钮功能
 searchInput.addEventListener('input', () => {
-    if (searchInput.value.trim()) {
+    const hasValue = searchInput.value.trim().length > 0;
+    
+    if (hasValue) {
         clearBtn.style.display = 'flex';
         clearBtn.classList.add('show');
         searchHistory.classList.add('hidden');
@@ -246,6 +262,11 @@ function displayResults(results) {
             ? `https://image.tmdb.org/t/p/w200${item.poster_path}`
             : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNkZGQiLz4KPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+5peg5Zu+54mHPC90ZXh0Pgo8L3N2Zz4=';
         
+        // 存储高清图片路径用于下载
+        const hdPosterPath = item.poster_path 
+            ? `https://image.tmdb.org/t/p/original${item.poster_path}`
+            : '';
+        
         const typeLabel = mediaType === 'movie' ? '电影' : '电视剧';
         const typeClass = mediaType === 'movie' ? 'type-movie' : 'type-tv';
         
@@ -256,8 +277,18 @@ function displayResults(results) {
         return `
             <div class="result-item">
                 <div class="poster-wrapper">
-                    <img src="${posterPath}" alt="${title}" class="poster" data-title="${title}" data-year="${year}" title="点击下载图片">
-                    <div class="download-hint">点击下载</div>
+                    <img src="${posterPath}" alt="${title}" class="poster" 
+                         data-title="${title}" 
+                         data-year="${year}" 
+                         data-hd-poster="${hdPosterPath}"
+                         data-poster-path="${item.poster_path || ''}"
+                         title="点击下载高清图片">
+                    <div class="download-hint">点击下载高清</div>
+                    <div class="download-options" style="display: none;">
+                        <button class="download-size-btn" data-size="w500">中等 (500px)</button>
+                        <button class="download-size-btn" data-size="w780">大图 (780px)</button>
+                        <button class="download-size-btn" data-size="original">原图 (最高清)</button>
+                    </div>
                 </div>
                 <div class="result-info">
                     <h3>${title} ${year ? `(${year})` : ''}</h3>
@@ -294,10 +325,46 @@ function displayResults(results) {
         });
     });
     
-    // 添加图片下载事件监听器
+    // 添加图片下载事件监听器 - 支持多种尺寸选择
     resultsDiv.querySelectorAll('.poster').forEach(img => {
-        img.addEventListener('click', function() {
-            downloadImage(this.src, this.dataset.title, this.dataset.year);
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            const posterWrapper = this.closest('.poster-wrapper');
+            const optionsDiv = posterWrapper.querySelector('.download-options');
+            
+            // 切换选项显示
+            if (optionsDiv.style.display === 'none') {
+                // 隐藏所有其他的下载选项
+                document.querySelectorAll('.download-options').forEach(div => {
+                    div.style.display = 'none';
+                });
+                optionsDiv.style.display = 'flex';
+            } else {
+                optionsDiv.style.display = 'none';
+            }
+        });
+    });
+    
+    // 添加尺寸选择按钮事件
+    resultsDiv.querySelectorAll('.download-size-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const posterWrapper = this.closest('.poster-wrapper');
+            const poster = posterWrapper.querySelector('.poster');
+            const size = this.dataset.size;
+            const posterPath = poster.dataset.posterPath;
+            
+            if (!posterPath) {
+                showError('该项目没有可用的海报图片');
+                return;
+            }
+            
+            const imageUrl = `https://image.tmdb.org/t/p/${size}${posterPath}`;
+            const sizeLabel = size === 'original' ? '原图' : size;
+            downloadImage(imageUrl, poster.dataset.title, poster.dataset.year, sizeLabel);
+            
+            // 隐藏选项
+            posterWrapper.querySelector('.download-options').style.display = 'none';
         });
     });
 }
@@ -350,8 +417,8 @@ function copyToClipboard(id, button) {
     document.body.removeChild(tempInput);
 }
 
-// 下载图片功能
-async function downloadImage(imageUrl, title, year) {
+// 下载图片功能 - 增强版支持多种尺寸
+async function downloadImage(imageUrl, title, year, sizeLabel = '') {
     try {
         // 如果是默认占位符图片，不允许下载
         if (imageUrl.startsWith('data:image/svg+xml')) {
@@ -359,47 +426,145 @@ async function downloadImage(imageUrl, title, year) {
             return;
         }
         
-        // 通过代理服务器获取图片，解决跨域问题
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`;
+        // 显示下载进度提示
+        showDownloadProgress(sizeLabel);
         
-        const response = await fetch(proxyUrl);
-        if (!response.ok) {
-            throw new Error('图片下载失败');
+        // 尝试多个代理服务
+        const proxyUrls = [
+            `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`,
+            `https://cors-anywhere.herokuapp.com/${imageUrl}`
+        ];
+        
+        let downloadSuccess = false;
+        
+        for (const proxyUrl of proxyUrls) {
+            try {
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'image/*'
+                    }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    
+                    // 检查是否真的是图片
+                    if (blob.type.startsWith('image/')) {
+                        triggerDownload(blob, title, year, sizeLabel);
+                        downloadSuccess = true;
+                        break;
+                    }
+                }
+            } catch (proxyError) {
+                console.log(`代理失败: ${proxyUrl}`, proxyError);
+                continue;
+            }
         }
         
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        
-        // 创建下载链接
-        const a = document.createElement('a');
-        a.href = url;
-        
-        // 生成文件名
-        const fileName = `${title}${year ? '_' + year : ''}_poster.jpg`;
-        a.download = fileName.replace(/[^\w\s-]/gi, ''); // 移除特殊字符
-        
-        // 触发下载
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        // 清理URL对象
-        window.URL.revokeObjectURL(url);
-        
-        // 显示成功提示
-        showDownloadSuccess();
+        // 如果所有代理都失败，使用创建链接的方式
+        if (!downloadSuccess) {
+            // 创建一个隐藏的链接元素来触发下载
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = `${title}${year ? '_' + year : ''}_${sizeLabel || 'poster'}.jpg`.replace(/[^\w\s-]/gi, '');
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            
+            // 尝试通过链接下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 显示提示
+            showDownloadAlternative(sizeLabel);
+        }
         
     } catch (error) {
         console.error('下载失败:', error);
-        showError('图片下载失败，请稍后重试');
+        // 提供备选方案
+        fallbackDownload(imageUrl, title);
     }
 }
 
-// 显示下载成功提示
-function showDownloadSuccess() {
+// 触发文件下载
+function triggerDownload(blob, title, year, sizeLabel) {
+    const url = window.URL.createObjectURL(blob);
+    
+    // 创建下载链接
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // 生成文件名，包含尺寸信息
+    const sizeInfo = sizeLabel ? `_${sizeLabel}` : '';
+    const fileName = `${title}${year ? '_' + year : ''}${sizeInfo}_poster.jpg`;
+    a.download = fileName.replace(/[^\w\s-]/gi, ''); // 移除特殊字符
+    
+    // 触发下载
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // 清理URL对象
+    window.URL.revokeObjectURL(url);
+    
+    // 显示成功提示
+    showDownloadSuccess(sizeLabel);
+}
+
+// 备选下载方案
+function fallbackDownload(imageUrl, title) {
+    // 在新标签页打开图片
+    window.open(imageUrl, '_blank');
+    
+    // 显示提示
     const toast = document.createElement('div');
-    toast.className = 'download-toast';
-    toast.textContent = '图片下载中...';
+    toast.className = 'download-toast fallback';
+    toast.innerHTML = `
+        <div>图片已在新标签页打开</div>
+        <small>右键点击图片选择"另存为"保存</small>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// 显示下载进度提示
+function showDownloadProgress(sizeLabel) {
+    const existingToast = document.querySelector('.download-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = 'download-toast progress';
+    const sizeText = sizeLabel ? `(${sizeLabel})` : '';
+    toast.innerHTML = `
+        <span>正在下载图片 ${sizeText}</span>
+        <div class="download-progress-bar"></div>
+    `;
+    document.body.appendChild(toast);
+}
+
+// 显示下载成功提示
+function showDownloadSuccess(sizeLabel) {
+    const existingToast = document.querySelector('.download-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = 'download-toast success';
+    const sizeText = sizeLabel ? `(${sizeLabel})` : '';
+    toast.textContent = `图片下载成功 ${sizeText}`;
     document.body.appendChild(toast);
     
     setTimeout(() => {
@@ -410,6 +575,32 @@ function showDownloadSuccess() {
             }
         }, 300);
     }, 2000);
+}
+
+// 显示备选下载方式提示
+function showDownloadAlternative(sizeLabel) {
+    const existingToast = document.querySelector('.download-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = 'download-toast alternative';
+    const sizeText = sizeLabel ? `(${sizeLabel})` : '';
+    toast.innerHTML = `
+        <div>图片已在新标签页打开 ${sizeText}</div>
+        <small>请右键保存图片或等待自动下载</small>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
 }
 
 function showLoading(show) {
@@ -436,10 +627,10 @@ window.addEventListener('load', () => {
     // 初始化暗黑模式
     initDarkMode();
     
-    // 确保清除按钮正确初始化
-    const clearBtn = document.getElementById('clearBtn');
+    // 确保清除按钮正确初始化 - 不要重新声明变量
     if (clearBtn) {
         clearBtn.style.display = 'none';
+        clearBtn.classList.remove('show');
     }
     
     if (API_KEY === 'YOUR_API_KEY_HERE') {
@@ -459,8 +650,8 @@ window.addEventListener('load', () => {
     
     // 检查输入框是否有初始值
     if (searchInput && searchInput.value.trim()) {
-        clearBtn.classList.add('show');
         clearBtn.style.display = 'flex';
+        clearBtn.classList.add('show');
     }
     
     // 确保搜索历史初始状态是隐藏的
