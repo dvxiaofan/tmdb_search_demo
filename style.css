@@ -1088,10 +1088,293 @@ body.dark-mode .character-name {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.similar-item:hover {
+    background: rgba(103, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+body.dark-mode .similar-item {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .similar-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.similar-poster {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.similar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.similar-title {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+body.dark-mode .similar-title {
+    color: #e0e0e0;
+}
+
+.similar-rating {
+    font-size: 0.85em;
+    color: #f39c12;
+}
+
+/* 系列标签样式 */
+.type-collection {
+    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    color: white;
+}
+
+/* 系列详情样式 */
+.collection-overview {
+    margin-bottom: 20px;
+}
+
+.collection-description {
+    margin-bottom: 15px;
+}
+
+.collection-description h4 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+body.dark-mode .collection-description h4 {
+    color: #e0e0e0;
+}
+
+.collection-description p {
+    color: #666;
+    line-height: 1.6;
+}
+
+body.dark-mode .collection-description p {
+    color: #b0b0b0;
+}
+
+.collection-stats {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.collection-movies {
+    margin-top: 20px;
+}
+
+.collection-movies h4 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+body.dark-mode .collection-movies h4 {
+    color: #e0e0e0;
+}
+
+.collection-movies-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.collection-movie-item {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.3s ease;
+}
+
+.collection-movie-item:hover {
+    background: rgba(103, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+body.dark-mode .collection-movie-item {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .collection-movie-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.collection-movie-poster {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.collection-movie-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.collection-movie-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9em;
+    line-height: 1.2;
+}
+
+body.dark-mode .collection-movie-title {
+    color: #e0e0e0;
+}
+
+.collection-movie-year {
+    color: #888;
+    font-size: 0.85em;
+}
+
+.collection-movie-rating {
+    color: #f39c12;
+    font-size: 0.85em;
+}
+
+.collection-movie-link {
+    color: #677eea;
+    font-size: 0.85em;
+    text-decoration: none;
+    margin-top: 5px;
+    transition: color 0.3s ease;
+}
+
+.collection-movie-link:hover {
+    color: #5568c3;
+    text-decoration: underline;
+}
+
+body.dark-mode .collection-movie-link {
+    color: #8fa2ff;
+}
+
+body.dark-mode .collection-movie-link:hover {
+    color: #a8b8ff;
+}
+
+/* 季信息样式 */
+.seasons-section {
+    margin-top: 20px;
+}
+
+.seasons-section h4 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+body.dark-mode .seasons-section h4 {
+    color: #e0e0e0;
+}
+
+.seasons-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.season-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(103, 126, 234, 0.05);
+    border: 1px solid rgba(103, 126, 234, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.season-item:hover {
+    background: rgba(103, 126, 234, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(103, 126, 234, 0.15);
+}
+
+body.dark-mode .season-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .season-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.season-number {
+    font-weight: 600;
+    color: #677eea;
+    font-size: 1em;
+    margin-bottom: 4px;
+}
+
+body.dark-mode .season-number {
+    color: #8fa2ff;
+}
+
+.season-episodes {
+    color: #333;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+body.dark-mode .season-episodes {
+    color: #e0e0e0;
+}
+
+.season-year {
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 4px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .seasons-list {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 8px;
+    }
+
+    .season-item {
+        padding: 8px;
+    }
+
+    .season-number {
+        font-size: 0.9em;
+    }
+
+    .season-episodes {
+        font-size: 0.85em;
+    }
+
+    .season-year {
+        font-size: 0.75em;
+    }
+}
+
+/* 下载进度提示样式 */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
 }
