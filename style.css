@@ -1829,8 +1829,9 @@ body.dark-mode .download-toast.fallback {
 
 .back-to-top {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
     width: 50px;
     height: 50px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1850,7 +1851,7 @@ body.dark-mode .download-toast.fallback {
 }
 
 .back-to-top:hover {
-    transform: translateY(-5px);
+    transform: translateY(-50%) scale(1.1);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
@@ -1859,10 +1860,13 @@ body.dark-mode .download-toast.fallback {
     visibility: visible;
 }
 
+.back-to-top:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
 @media (max-width: 768px) {
     .back-to-top {
-        bottom: 20px;
-        right: 20px;
+        right: 15px;
         width: 45px;
         height: 45px;
         font-size: 20px;
