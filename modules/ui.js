@@ -140,6 +140,8 @@ export function displayResults(results) {
                         <p class="overview">${item.overview || '暂无简介'}</p>
                         <div class="actions">
                             <button class="copy-btn" data-id="${item.id}">复制ID</button>
+                            <button class="copy-tmdb-btn" data-id="${item.id}">复制[ID]</button>
+                            <button class="copy-full-btn" data-id="${item.id}" data-title="${title}" data-year="${year}">复制名字-ID</button>
                             <a href="${tmdbUrl}" target="_blank" class="tmdb-link">在TMDB查看</a>
                         </div>
                     </div>
@@ -179,11 +181,31 @@ export function displayResults(results) {
 function bindResultEvents() {
     const { resultsDiv } = getElements();
 
-    // 添加复制按钮事件监听器
+    // 添加复制按钮事件监听器 - 复制ID
     resultsDiv.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const id = this.dataset.id;
             copyToClipboard(id, this);
+        });
+    });
+
+    // 添加复制 [tmdb=ID] 格式按钮
+    resultsDiv.querySelectorAll('.copy-tmdb-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const text = `[tmdb=${id}]`;
+            copyToClipboard(text, this);
+        });
+    });
+
+    // 添加复制 "名字-年份-[tmdb=ID]" 格式按钮
+    resultsDiv.querySelectorAll('.copy-full-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const title = this.dataset.title;
+            const year = this.dataset.year;
+            const text = `${title}${year ? `-${year}` : ''}-[tmdb=${id}]`;
+            copyToClipboard(text, this);
         });
     });
 

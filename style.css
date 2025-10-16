@@ -575,6 +575,7 @@ body.has-results .results-wrapper {
 .result-item {
     position: relative;
     display: flex;
+    flex-direction: column; /* 始终使用纵向布局 */
     gap: 20px;
     padding: 20px;
     background: white;
@@ -726,28 +727,19 @@ body.dark-mode .type-tv {
 .overview {
     color: #666;
     line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
     transition: all 0.3s ease;
-}
-
-/* 展开状态下的概述文本 - 移除行数限制 */
-.result-item.expanded .overview {
-    display: block;
-    -webkit-line-clamp: none;
-    -webkit-box-orient: initial;
-    overflow: visible;
 }
 
 .actions {
     display: flex;
     gap: 10px;
-    margin-top: auto;
+    justify-content: flex-end; /* 按钮靠右对齐 */
+    align-items: center;
+    margin-top: 15px; /* 在简介下方留间距 */
+    flex-wrap: wrap; /* 允许按钮换行 */
 }
 
-.copy-btn, .tmdb-link {
+.copy-btn, .copy-tmdb-btn, .copy-full-btn, .tmdb-link {
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 14px;
@@ -755,19 +747,20 @@ body.dark-mode .type-tv {
     transition: all 0.3s;
     text-decoration: none;
     display: inline-block;
+    white-space: nowrap; /* 防止按钮文字换行 */
 }
 
-.copy-btn {
+.copy-btn, .copy-tmdb-btn, .copy-full-btn {
     background: #f0f0f0;
     color: #333;
     border: 1px solid #ddd;
 }
 
-.copy-btn:hover {
+.copy-btn:hover, .copy-tmdb-btn:hover, .copy-full-btn:hover {
     background: #e0e0e0;
 }
 
-.copy-btn.copied {
+.copy-btn.copied, .copy-tmdb-btn.copied, .copy-full-btn.copied {
     background: #00b894;
     color: white;
     border-color: #00b894;
@@ -862,14 +855,14 @@ body.dark-mode .detail-panel.expanded {
     border-top-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 主要内容区域 */
+/* 主要内容区域 - 水平布局保持海报和文字横排 */
 .result-main-content {
     display: flex;
     gap: 20px;
     width: 100%;
 }
 
-/* 结果卡片展开状态 */
+/* 结果卡片展开状态 - 不再需要改变布局方向 */
 .result-item.expanded {
     background: rgba(103, 126, 234, 0.05);
     margin: 20px 0;
@@ -877,7 +870,6 @@ body.dark-mode .detail-panel.expanded {
     padding: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transition: all 0.4s ease;
-    flex-direction: column; /* 展开时改为垂直布局 */
 }
 
 /* 展开状态下的主要内容区域保持水平布局 */
@@ -1679,6 +1671,8 @@ body.dark-mode .history-item:hover .history-remove {
 
 /* 暗黑模式下的按钮 */
 body.dark-mode .copy-btn,
+body.dark-mode .copy-tmdb-btn,
+body.dark-mode .copy-full-btn,
 body.dark-mode .clear-history {
     background: rgba(255, 255, 255, 0.1);
     color: #e0e0e0;
@@ -1686,6 +1680,8 @@ body.dark-mode .clear-history {
 }
 
 body.dark-mode .copy-btn:hover,
+body.dark-mode .copy-tmdb-btn:hover,
+body.dark-mode .copy-full-btn:hover,
 body.dark-mode .clear-history:hover {
     background: rgba(255, 255, 255, 0.2);
 }
