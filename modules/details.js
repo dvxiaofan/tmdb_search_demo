@@ -8,6 +8,71 @@ export function renderMovieDetails(container, details, credits, similar, mediaTy
     const rating = details.vote_average || 0;
     const voteCount = details.vote_count || 0;
 
+    // 获取国家信息
+    let countries = '';
+
+    // 国家名称中英文映射表（电影用）
+    const countryNameMap = {
+        'United States of America': '美国',
+        'United Kingdom': '英国',
+        'China': '中国',
+        'Japan': '日本',
+        'South Korea': '韩国',
+        'France': '法国',
+        'Germany': '德国',
+        'Italy': '意大利',
+        'Spain': '西班牙',
+        'Canada': '加拿大',
+        'Australia': '澳大利亚',
+        'India': '印度',
+        'Brazil': '巴西',
+        'Mexico': '墨西哥',
+        'Russia': '俄罗斯',
+        'Thailand': '泰国',
+        'Taiwan': '台湾',
+        'Hong Kong': '香港',
+        'Singapore': '新加坡',
+        'Malaysia': '马来西亚',
+        'Netherlands': '荷兰',
+        'Sweden': '瑞典',
+        'Norway': '挪威',
+        'Denmark': '丹麦',
+        'Poland': '波兰',
+        'Czech Republic': '捷克',
+        'Argentina': '阿根廷',
+        'New Zealand': '新西兰',
+        'Ireland': '爱尔兰',
+        'Belgium': '比利时',
+        'Switzerland': '瑞士',
+        'Austria': '奥地利',
+        'Portugal': '葡萄牙',
+        'Greece': '希腊',
+        'Turkey': '土耳其',
+        'Israel': '以色列',
+        'South Africa': '南非',
+        'Philippines': '菲律宾',
+        'Indonesia': '印度尼西亚',
+        'Vietnam': '越南'
+    };
+
+    // 国家代码映射表（电视剧用）
+    const countryCodeMap = {
+        'US': '美国', 'GB': '英国', 'CN': '中国', 'JP': '日本', 'KR': '韩国',
+        'FR': '法国', 'DE': '德国', 'IT': '意大利', 'ES': '西班牙', 'CA': '加拿大',
+        'AU': '澳大利亚', 'IN': '印度', 'BR': '巴西', 'MX': '墨西哥', 'RU': '俄罗斯',
+        'TH': '泰国', 'TW': '台湾', 'HK': '香港', 'SG': '新加坡', 'MY': '马来西亚',
+        'NL': '荷兰', 'SE': '瑞典', 'NO': '挪威', 'DK': '丹麦', 'PL': '波兰',
+        'CZ': '捷克', 'AR': '阿根廷', 'NZ': '新西兰', 'IE': '爱尔兰', 'BE': '比利时'
+    };
+
+    if (mediaType === 'movie') {
+        // 电影使用 production_countries (返回完整国家名)
+        countries = details.production_countries?.map(c => countryNameMap[c.name] || c.name).join('、') || '';
+    } else if (mediaType === 'tv') {
+        // 电视剧使用 origin_country (国家代码)
+        countries = details.origin_country?.map(code => countryCodeMap[code] || code).join('、') || '';
+    }
+
     // 获取主要演员（前6位）
     const mainCast = credits.cast?.slice(0, 6) || [];
 
@@ -65,6 +130,12 @@ export function renderMovieDetails(container, details, credits, similar, mediaTy
                     <span class="stat-label">类型</span>
                     <span class="stat-value">${genres}</span>
                 </div>
+                ${countries ? `
+                    <div class="stat-item">
+                        <span class="stat-label">国家</span>
+                        <span class="stat-value">${countries}</span>
+                    </div>
+                ` : ''}
             </div>
 
             ${seasonsHTML}
