@@ -31,8 +31,8 @@
 
 **生产环境**：https://tmdb.ccucc.de5.net/
 
-- **部署平台**：Cloudflare Pages（自定义域名 + 橙云 CDN）
-- **触发方式**：推送到 `main` 分支自动部署（无构建步骤，纯静态文件）
+- **部署平台**：Cloudflare Pages（项目 `cctmdbsearch`，自定义域名 + 橙云 CDN）
+- **发布方式**：Cloudflare Pages 直接上传（`ad_hoc` 部署）。GitHub 仅保存代码，`git push` **不会**自动发布，需要手动执行下面的 `wrangler` 命令或在 Dashboard 上传
 - **缓存策略**：HTML `public, max-age=0, must-revalidate`；JS/CSS `public, max-age=14400, must-revalidate`。Pages 部署成功后，浏览器或边缘节点仍可能继续使用旧 JS 最长 4 小时，强制刷新（`Cmd+Shift+R`）不一定能绕过边缘缓存
 - **HTTPS**：Cloudflare 自动签发证书，强制 HTTPS
 
@@ -101,9 +101,14 @@ tmdb_search_demo/
 ```
 GitHub (dvxiaofan/tmdb_search_demo, main)
      │
-     │ git push
+     │ 仅保存代码，push 不触发部署
      ▼
-Cloudflare Pages (Project: tmdb_search_demo)
+本地项目根目录
+     │
+     │ npx wrangler pages deploy . --project-name cctmdbsearch
+     │
+     ▼
+Cloudflare Pages (Project: cctmdbsearch)
      │
      │ 自定义域名 tmdb.ccucc.de5.net + CNAME 到 <project>.pages.dev
      │ 橙云代理（CDN + WAF + 缓存）
@@ -111,14 +116,20 @@ Cloudflare Pages (Project: tmdb_search_demo)
 用户访问 https://tmdb.ccucc.de5.net/
 ```
 
-### 部署流程（零配置）
+### 部署流程（手动发布）
 
-1. 本地改代码 → `git commit`
-2. `git push origin main`
-3. Cloudflare Pages 自动检测 push，**无构建命令**，直接发布 `./` 目录下所有文件
-4. Pages 通常 **30 秒~2 分钟** 完成构建，但“构建成功”不等于用户已经拿到新文件
-5. 在 Dashboard 的 Deployments 确认最新部署的 Commit 与 `origin/main` 一致
-6. 验证线上资源是否已更新：
+1. 本地改代码并测试
+2. `git commit`、`git push origin main`（只同步 GitHub，不触发 Pages 部署）
+3. 在项目根目录手动发布：
+
+```bash
+CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... \
+npx wrangler pages deploy . --project-name cctmdbsearch --branch main \
+  --commit-hash "$(git rev-parse HEAD)" --commit-message "$(git log -1 --pretty=%s)"
+```
+
+4. 在 Dashboard 的 Deployments 确认最新部署的 Commit 与 `origin/main` 一致
+5. 验证线上资源是否已更新：
 
 ```bash
 curl -s https://tmdb.ccucc.de5.net/modules/utils.js | grep "Accept: 'image/jpeg'"
@@ -126,7 +137,7 @@ curl -s https://tmdb.ccucc.de5.net/modules/utils.js | grep "Accept: 'image/jpeg'
 
 没有输出说明线上仍是旧版，需要检查部署状态或清理 Cloudflare 缓存。
 
-> ⚠️ **无 GitHub Actions / Workflows**，纯靠 Pages 的「Git 集成」自动部署。
+> ⚠️ **无 GitHub Actions / Workflows**，该项目也没有连接 Pages 的 GitHub「Git 集成」，必须手动发布。
 
 ### 回滚
 
@@ -140,7 +151,7 @@ Cloudflare Pages Dashboard → Custom domains → 添加/删除域名，自动�
 
 - **构建命令**：`（留空）`
 - **构建输出目录**：`/`（根目录）
-- **环境变量**：当前无需配置。API Key 会随前端源码公开，不能写入 TMDB 数据，但可能被他人调用并耗尽请求配额。生产环境建议通过 Cloudflare Worker 代理并限流；Key 一旦进入 Git 历史，轮换只能降低滥用风险，无法从历史中删除
+- **环境变量**：运行时无需配置。API Key 会随前端源码公开，不能写入 TMDB 数据，但可能被他人调用并耗尽请求配额。生产环境建议通过 Cloudflare Worker 代理并限流；Key 一旦进入 Git 历史，轮换只能降低滥用风险，无法从历史中删除。手动发布时需要 `CLOUDFLARE_API_TOKEN`（Pages Edit 权限）和 `CLOUDFLARE_ACCOUNT_ID`
 
 ---
 
@@ -207,7 +218,7 @@ Cloudflare Pages Dashboard → Custom domains → 添加/删除域名，自动�
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | 点击下载无反应 / 报错 | TMDB 限流 / 网络波动 | 刷新重试；或右键海报「在新标签页打开图片」手动保存 |
-| 线上改了代码不生效 | Pages 未部署最新提交 / 边缘缓存 4h | 在 Deployments 确认 Commit 与 `origin/main` 一致；部署成功后仍是旧版则清理缓存，并用上面的 `curl` 命令验证 |
+| 线上改了代码不生效 | 未手动发布 / 边缘缓存 4h | 按上面的 `wrangler` 命令发布，确认 Deployments 的 Commit 与 `origin/main` 一致；部署成功后仍是旧版则清理缓存，并用上面的 `curl` 命令验证 |
 | 搜索无结果 / 报 401、429 | API Key 失效、额度或频率受限 | 换新 Key 替换 `modules/api.js` 第 2 行；429 时降低请求频率或加代理限流 |
 | 本地 `file://` 打开白屏 | ES6 Module 需 HTTP 协议 | 必须用 `python3 -m http.server` / `npx serve` 等本地服务器 |
 
