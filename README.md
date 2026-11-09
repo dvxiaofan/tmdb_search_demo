@@ -7,7 +7,7 @@
 ### 核心功能
 - 🔍 **多类型搜索**：支持搜索电影、电视剧、系列（Collection）或全部类型
 - 📋 **快速复制 ID**：一键复制 TMDB ID 到剪贴板
-- 🖼️ **海报下载**：支持多种尺寸的海报图片下载（中等、大图、原图）
+- 🖼️ **海报下载**：支持多种尺寸的海报图片下载（中等 500px、大图 780px、原图最高清）
 - 📝 **详细信息展示**：
   - 电影：评分、时长、类型、主演、相似推荐
   - 电视剧：总集数、季数信息、单集时长、每季集数详情
@@ -25,158 +25,212 @@
 - ⬆️ **返回顶部**：便捷的返回顶部按钮（显示在右侧中间）
 - 💀 **骨架屏加载**：优雅的加载动画体验
 
+---
+
+## 🌐 线上部署
+
+**生产环境**：https://tmdb.ccucc.de5.net/
+
+- **部署平台**：Cloudflare Pages（自定义域名 + 橙云 CDN）
+- **触发方式**：推送到 `main` 分支自动部署（无构建步骤，纯静态文件）
+- **缓存策略**：HTML `public, max-age=0, must-revalidate`；JS/CSS `public, max-age=14400, must-revalidate`。Pages 部署成功后，浏览器或边缘节点仍可能继续使用旧 JS 最长 4 小时，强制刷新（`Cmd+Shift+R`）不一定能绕过边缘缓存
+- **HTTPS**：Cloudflare 自动签发证书，强制 HTTPS
+
+---
+
 ## 🚀 快速开始
 
-### 在线使用
-访问已部署的在线版本（如果有）
+### 本地开发
 
-### 本地部署
-
-1. **克隆项目**
 ```bash
-git clone https://github.com/yourusername/tmdb-search.git
-cd tmdb-search
-```
+# 1. 克隆项目
+git clone git@github.com:dvxiaofan/tmdb_search_demo.git
+cd tmdb_search_demo
 
-2. **配置 API 密钥**
-在 `modules/api.js` 文件中设置你的 TMDB API 密钥：
-```javascript
-export const API_KEY = 'YOUR_API_KEY_HERE';
-```
-
-获取 API 密钥：
-- 访问 [TMDB API 设置页面](https://www.themoviedb.org/settings/api)
-- 登录或注册账号
-- 申请 API 密钥（选择 Developer 选项）
-- 复制 API Key (v3 auth)
-
-3. **启动本地服务器**
-由于使用了 ES6 模块，需要通过 HTTP 服务器访问：
-```bash
-# Python 3
+# 2. 启动本地服务器（ES6 模块需要 HTTP 协议，不能直接双击 index.html）
 python3 -m http.server 8000
+# 或 npx serve
+# 或 VS Code Live Server 插件
 
-# 或使用 Node.js
-npx serve
-
-# 或使用 Live Server 插件（VS Code）
+# 3. 访问 http://localhost:8000
 ```
 
-4. **访问应用**
-打开浏览器访问 `http://localhost:8000`
+### API 密钥（已内置）
+
+项目 `modules/api.js` 已配置可用的 TMDB API Key（v3 auth）：
+```javascript
+export const API_KEY = 'f67cfcb63ecbb9e50c7a4adb2e01aea1';
+```
+> 如需更换：访问 [TMDB API 设置](https://www.themoviedb.org/settings/api) 申请 Developer Key，替换该行即可。
+
+---
 
 ## 📁 项目结构
 
 ```
-tmdb-search/
-├── index.html          # 主页面
-├── main.js            # 主入口文件
-├── style.css          # 样式文件
-├── modules/           # ES6 模块
-│   ├── api.js        # API 相关功能
-│   ├── ui.js         # UI 渲染功能
-│   ├── details.js    # 详情渲染功能
-│   ├── utils.js      # 工具函数
-│   ├── history.js    # 历史记录管理
-│   └── theme.js      # 主题管理
-├── LICENSE            # MIT 许可证
-└── README.md         # 项目说明
+tmdb_search_demo/
+├── index.html          # 主页面（2.8 KB）
+├── main.js             # 入口文件（7.4 KB）——初始化、事件绑定、全局快捷键
+├── style.css           # 样式文件（36.5 KB）——CSS 变量主题、响应式、动画
+├── modules/            # ES6 模块（按职责拆分）
+│   ├── api.js          # TMDB API 封装（搜索、详情、演员、相似推荐）
+│   ├── ui.js           # 结果渲染、事件绑定（下载菜单、展开面板、复制 ID）
+│   ├── details.js      # 电影/电视剧/系列详情 HTML 生成
+│   ├── utils.js        # 下载核心：直连 TMDB + Accept: image/jpeg + MIME 决定扩展名 + 兜底
+│   ├── history.js      # localStorage 搜索历史（最多 10 条）
+│   └── theme.js        # 暗黑模式切换 + localStorage 持久化
+├── LICENSE             # MIT
+└── README.md           # 本文件
 ```
+
+---
 
 ## 🛠️ 技术栈
 
-- **原生 JavaScript (ES6+)**：使用模块化开发，无框架依赖
-- **原生 CSS3**：现代 CSS 特性，包括 Grid、Flexbox、CSS 变量
-- **TMDB API v3**：官方电影数据库 API
-- **静态部署**：纯静态网页，可部署到任何静态服务器
+- **原生 JavaScript (ES6+)**：模块化开发，无框架、无构建工具
+- **原生 CSS3**：CSS 变量、Grid、Flexbox、媒体查询
+- **TMDB API v3**：官方电影数据库 API，语言 `zh-CN`
+- **纯静态部署**：任意静态服务器均可托管
+
+---
+
+## 📦 部署运维指南（给后续 AI / 维护者）
+
+### 当前部署架构
+
+```
+GitHub (dvxiaofan/tmdb_search_demo, main)
+     │
+     │ git push
+     ▼
+Cloudflare Pages (Project: tmdb_search_demo)
+     │
+     │ 自定义域名 tmdb.ccucc.de5.net + CNAME 到 <project>.pages.dev
+     │ 橙云代理（CDN + WAF + 缓存）
+     ▼
+用户访问 https://tmdb.ccucc.de5.net/
+```
+
+### 部署流程（零配置）
+
+1. 本地改代码 → `git commit`
+2. `git push origin main`
+3. Cloudflare Pages 自动检测 push，**无构建命令**，直接发布 `./` 目录下所有文件
+4. Pages 通常 **30 秒~2 分钟** 完成构建，但“构建成功”不等于用户已经拿到新文件
+5. 在 Dashboard 的 Deployments 确认最新部署的 Commit 与 `origin/main` 一致
+6. 验证线上资源是否已更新：
+
+```bash
+curl -s https://tmdb.ccucc.de5.net/modules/utils.js | grep "Accept: 'image/jpeg'"
+```
+
+没有输出说明线上仍是旧版，需要检查部署状态或清理 Cloudflare 缓存。
+
+> ⚠️ **无 GitHub Actions / Workflows**，纯靠 Pages 的「Git 集成」自动部署。
+
+### 回滚
+
+Cloudflare Pages Dashboard → Deployments → 任意历史部署 → `Rollback`（秒级生效）。
+
+### 修改自定义域名 / SSL
+
+Cloudflare Pages Dashboard → Custom domains → 添加/删除域名，自动申请证书。
+
+### 环境变量 / 构建设置
+
+- **构建命令**：`（留空）`
+- **构建输出目录**：`/`（根目录）
+- **环境变量**：当前无需配置。API Key 会随前端源码公开，不能写入 TMDB 数据，但可能被他人调用并耗尽请求配额。生产环境建议通过 Cloudflare Worker 代理并限流；Key 一旦进入 Git 历史，轮换只能降低滥用风险，无法从历史中删除
+
+---
+
+## 🔧 关键模块逻辑速览
+
+| 模块 | 核心职责 | 关键函数/导出 |
+|---|---|---|
+| `api.js` | TMDB REST 封装 | `searchTMDB(query, type)`、`getDetails(id, type)` |
+| `ui.js` | 结果列表渲染、交互绑定 | `displayResults()`、`bindResultEvents()` |
+| `details.js` | 详情面板 HTML 生成 | `renderMovieDetails()`、`renderCollectionDetails()` |
+| `utils.js` | **海报下载核心** | `downloadImage(url, title, year, sizeLabel)` |
+| `history.js` | 搜索历史本地存储 | `saveHistory()`、`displayHistory()` |
+| `theme.js` | 暗黑模式切换 | `initDarkMode()`、`initThemeEvents()` |
+
+### 下载逻辑（`utils.js` 关键变更点）
+
+- **直连 TMDB**：`fetch(imageUrl, { headers: { Accept: 'image/jpeg' } })`，不再走第三方 CORS 代理。依赖图片 CDN 当前返回的 `access-control-allow-origin: *`；如果 CORS 策略变化，需要改走自建代理
+- **20s 超时控制**：`AbortController` 防止挂起
+- **MIME 决定扩展名**：`image/jpeg→jpg`、`image/webp→webp`、`image/png→png`… 避免「下载 .jpg 实为 WebP」
+- **文件名规则**：`${title}_${year}_${sizeLabel}_poster.${ext}`，非法字符替换为 `_`，长度 ≤ 150
+- **兜底**：直连失败 → `window.open(url)` 新标签页 + 提示「右键另存为」
+
+---
 
 ## 📱 浏览器兼容性
 
-- Chrome 61+
-- Firefox 60+
-- Safari 11+
-- Edge 79+
+| 浏览器 | 最低版本 | 备注 |
+|---|---|---|
+| Chrome | 80+ | 可选链、AbortController、fetch |
+| Firefox | 74+ | 可选链、AbortController |
+| Safari / iOS Safari | 14.1+ | JS 基线 13.1+，flex `gap` 需要 14.1+ |
+| Edge | 80+ | Chromium 内核 |
 
-## 🌐 部署指南
-
-本项目为纯静态网页，可以部署到任何静态网页托管服务：
-
-### GitHub Pages
-1. Fork 本项目
-2. 在仓库设置中启用 GitHub Pages
-3. 选择 main 分支作为源
-
-### Netlify / Vercel
-1. 连接 GitHub 仓库
-2. 设置构建命令为空（纯静态项目）
-3. 设置发布目录为 `/`
-
-### 云存储静态托管
-支持阿里云 OSS、腾讯云 COS、AWS S3 等云存储的静态网站托管功能。
-
-## 🔧 配置说明
-
-### API 配置
-- API 密钥配置文件：`modules/api.js`
-- API 基础 URL：`https://api.themoviedb.org/3`
-- 语言设置：`zh-CN`（中文）
-
-### 自定义设置
-- 搜索历史条数：`modules/history.js` 中的 `MAX_HISTORY`（默认 10 条）
-- 主题设置：自动保存在 localStorage 中
-
-## 📖 使用说明
-
-### 搜索功能
-1. 在搜索框输入电影、电视剧或系列名称
-2. 选择搜索类型（全部/电影/电视剧/系列）
-3. 点击搜索按钮或按回车键
-
-### 快捷操作
-- **复制 ID**：点击"复制ID"按钮快速复制 TMDB ID
-- **查看详情**：点击展开按钮查看详细信息
-- **下载海报**：点击海报图片选择下载尺寸
-- **TMDB 链接**：点击"在TMDB查看"跳转官网
+---
 
 ## 🔄 更新日志
 
-### v2.0.0 (2025-01-15)
-- 🎯 采用 ES6 模块化重构项目
+### v2.1.0 (2026-11-09)
+- 🐛 **修复海报下载失败及格式不一致问题**
+  - 移除 3 个不稳定的 CORS 代理，改为直连 TMDB + 显式 `Accept: image/jpeg`
+  - 新增 20s 超时控制（`AbortController`）
+  - 新增 `getImageExtension()`：按实际 MIME 类型决定文件扩展名
+  - 新增 `buildFileName()`：保留中文、安全过滤、长度限制
+  - 统一兜底路径为「新标签页打开 + 右键保存提示」
+
+### v2.0.0 (2025-09-15)
+- 🎯 采用 ES6 模块化重构项目（`1e12446`）
 - ✨ 新增系列（Collection）搜索功能
 - 📊 电视剧显示每季集数详情
 - 🎨 优化返回顶部按钮位置（右侧中间）
 - 🏗️ 代码结构优化，提升可维护性
 
-### v1.0.0 (2025-01-08)
+### v1.0.0 (2025-09-06)
 - 🎉 初始版本发布
 - ✨ 实现基础搜索功能
 - 🌓 添加暗黑模式
 - 📝 添加搜索历史
 - 🖼️ 支持海报下载
 
-## 📝 开发计划
+---
 
-### 即将推出
-- [ ] 高级筛选（年份、类型、评分）
-- [ ] 收藏夹功能
-- [ ] 批量导出功能
-- [ ] 更多语言支持
-- [ ] PWA 支持
+## 🛡️ 常见问题排查
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 点击下载无反应 / 报错 | TMDB 限流 / 网络波动 | 刷新重试；或右键海报「在新标签页打开图片」手动保存 |
+| 线上改了代码不生效 | Pages 未部署最新提交 / 边缘缓存 4h | 在 Deployments 确认 Commit 与 `origin/main` 一致；部署成功后仍是旧版则清理缓存，并用上面的 `curl` 命令验证 |
+| 搜索无结果 / 报 401、429 | API Key 失效、额度或频率受限 | 换新 Key 替换 `modules/api.js` 第 2 行；429 时降低请求频率或加代理限流 |
+| 本地 `file://` 打开白屏 | ES6 Module 需 HTTP 协议 | 必须用 `python3 -m http.server` / `npx serve` 等本地服务器 |
+
+---
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-### 贡献指南
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+```bash
+git checkout -b feature/xxx
+git commit -m 'feat: xxx'
+git push origin feature/xxx
+# 开 PR
+```
+
+---
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+MIT License — 查看 [LICENSE](LICENSE)
+
+---
 
 ## 🙏 致谢
 
