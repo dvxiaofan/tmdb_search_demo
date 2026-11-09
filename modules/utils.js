@@ -62,100 +62,112 @@ export async function downloadImage(imageUrl, title, year, sizeLabel = '') {
         // 显示下载进度提示
         showDownloadProgress(sizeLabel);
 
-        // 尝试多个代理服务
-        const proxyUrls = [
-            `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`,
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`,
-            `https://cors-anywhere.herokuapp.com/${imageUrl}`
-        ];
+        // TMDB 会根据 Accept 返回 WebP。显式请求 JPEG，避免下载后缀与内容不一致。
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-        let downloadSuccess = false;
-
-        for (const proxyUrl of proxyUrls) {
-            try {
-                const response = await fetch(proxyUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'image/*'
-                    }
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-
-                    // 检查是否真的是图片
-                    if (blob.type.startsWith('image/')) {
-                        triggerDownload(blob, title, year, sizeLabel);
-                        downloadSuccess = true;
-                        break;
-                    }
-                }
-            } catch (proxyError) {
-                console.log(`代理失败: ${proxyUrl}`, proxyError);
-                continue;
-            }
+        let response;
+        try {
+            response = await fetch(imageUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'image/jpeg'
+                },
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutId);
         }
 
-        // 如果所有代理都失败，使用创建链接的方式
-        if (!downloadSuccess) {
-            // 创建一个隐藏的链接元素来触发下载
-            const link = document.createElement('a');
-            link.href = imageUrl;
-            link.download = `${title}${year ? '_' + year : ''}_${sizeLabel || 'poster'}.jpg`.replace(/[^\w\s-]/gi, '');
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-
-            // 尝试通过链接下载
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // 显示提示
-            showDownloadAlternative(sizeLabel);
+        if (!response.ok) {
+            throw new Error(`图片请求失败（HTTP ${response.status}）`);
         }
 
+        const blob = await response.blob();
+        if (blob.type && !blob.type.startsWith('image/')) {
+            throw new Error('返回内容不是图片');
+        }
+
+        triggerDownload(blob, title, year, sizeLabel, imageUrl);
     } catch (error) {
         console.error('下载失败:', error);
-        // 提供备选方案
-        fallbackDownload(imageUrl, title);
+        fallbackDownload(imageUrl, title, sizeLabel);
     }
 }
 
+// 根据图片 MIME 类型确定文件扩展名
+function getImageExtension(blobType, imageUrl) {
+    const mimeExtensions = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+        'image/avif': 'avif',
+        'image/svg+xml': 'svg'
+    };
+
+    if (mimeExtensions[blobType]) {
+        return mimeExtensions[blobType];
+    }
+
+    const urlExtension = imageUrl.split('?')[0].split('.').pop().toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'svg'].includes(urlExtension)
+        ? urlExtension
+        : 'jpg';
+}
+
+// 生成保留中文的文件名
+function buildFileName(title, year, sizeLabel, extension) {
+    const parts = [title?.trim(), year, sizeLabel].filter(Boolean);
+    const fileName = `${parts.join('_')}_poster.${extension}`;
+
+    return fileName
+        .replace(/[\\/:*?"<>|\x00-\x1f]/g, '_')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 150);
+}
+
 // 触发文件下载
-function triggerDownload(blob, title, year, sizeLabel) {
+function triggerDownload(blob, title, year, sizeLabel, imageUrl) {
     const url = window.URL.createObjectURL(blob);
 
     // 创建下载链接
     const a = document.createElement('a');
     a.href = url;
 
-    // 生成文件名，包含尺寸信息
-    const sizeInfo = sizeLabel ? `_${sizeLabel}` : '';
-    const fileName = `${title}${year ? '_' + year : ''}${sizeInfo}_poster.jpg`;
-    a.download = fileName.replace(/[^\w\s-]/gi, ''); // 移除特殊字符
+    // 扩展名以实际返回的图片类型为准
+    const extension = getImageExtension(blob.type, imageUrl);
+    a.download = buildFileName(title, year, sizeLabel, extension);
 
     // 触发下载
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
-    // 清理URL对象
-    window.URL.revokeObjectURL(url);
+    // 延迟释放，避免部分浏览器还没读取完 blob
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
     // 显示成功提示
     showDownloadSuccess(sizeLabel);
 }
 
 // 备选下载方案
-function fallbackDownload(imageUrl, title) {
+function fallbackDownload(imageUrl, title, sizeLabel = '') {
+    const existingToast = document.querySelector('.download-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
     // 在新标签页打开图片
     window.open(imageUrl, '_blank');
 
     // 显示提示
     const toast = document.createElement('div');
     toast.className = 'download-toast fallback';
+    const sizeText = sizeLabel ? `(${sizeLabel})` : '';
     toast.innerHTML = `
-        <div>图片已在新标签页打开</div>
+        <div>下载失败，图片已在新标签页打开 ${sizeText}</div>
         <small>右键点击图片选择"另存为"保存</small>
     `;
     document.body.appendChild(toast);
@@ -208,30 +220,4 @@ function showDownloadSuccess(sizeLabel) {
             }
         }, 300);
     }, 2000);
-}
-
-// 显示备选下载方式提示
-function showDownloadAlternative(sizeLabel) {
-    const existingToast = document.querySelector('.download-toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'download-toast alternative';
-    const sizeText = sizeLabel ? `(${sizeLabel})` : '';
-    toast.innerHTML = `
-        <div>图片已在新标签页打开 ${sizeText}</div>
-        <small>请右键保存图片或等待自动下载</small>
-    `;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
-            }
-        }, 300);
-    }, 3000);
 }
