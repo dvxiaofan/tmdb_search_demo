@@ -132,7 +132,7 @@ npx wrangler pages deploy . --project-name cctmdbsearch --branch main \
 5. 验证线上资源是否已更新：
 
 ```bash
-curl -s https://tmdb.ccucc.de5.net/modules/utils.js | grep "Accept: 'image/jpeg'"
+curl -s https://tmdb.ccucc.de5.net/modules/utils.js | grep "getImageExtension"
 ```
 
 没有输出说明线上仍是旧版，需要检查部署状态或清理 Cloudflare 缓存。
